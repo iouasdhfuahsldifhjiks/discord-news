@@ -60,7 +60,7 @@ ADMIN_PASSWORD_HASH=$2a$10$...
 PORT=30000
 
 # (Необязательно) NODE_ENV=production
-
+```
 Важно: не храните этот файл в публичных репозиториях.
 Как сгенерировать ADMIN_PASSWORD_HASH
 
