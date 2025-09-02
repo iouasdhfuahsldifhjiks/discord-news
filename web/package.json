@@ -1,0 +1,10 @@
+{
+  "name": "discord-news-web",
+  "version": "1.0.0",
+  "description": "Web dashboard for Discord news bot",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {}
+}

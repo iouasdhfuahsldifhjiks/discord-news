@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управления - Discord News Bot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="bi bi-megaphone"></i> Discord News Bot
+            </span>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3">
+                    Сервер: <strong><%= guildName %></strong>
+                </span>
+                <a href="/logout" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-box-arrow-right"></i> Выйти
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Левая колонка - Форма -->
+            <div class="col-lg-6">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-pencil-square"></i> Создание новости
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="newsForm" enctype="multipart/form-data">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="channel" class="form-label">Канал</label>
+                                    <select class="form-select" id="channel" name="channel" required>
+                                        <option value="">Выберите канал...</option>
+                                        <% channels.forEach(channel => { %>
+                                            <option value="<%= channel.id %>"><%= channel.name %></option>
+                                        <% }); %>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="role" class="form-label">Упоминание роли</label>
+                                    <select class="form-select" id="role" name="role">
+                                        <option value="">Не упоминать</option>
+                                        <% roles.forEach(role => { %>
+                                            <option value="<%= role.id %>" 
+                                                    style="color: <%= role.color %>;">
+                                                @<%= role.name %>
+                                            </option>
+                                        <% }); %>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="content" class="form-label">Текст новости</label>
+                                <textarea class="form-control" id="content" name="content" rows="6" 
+                                          placeholder="Введите текст новости..." required></textarea>
+                                <div class="form-text">Поддерживается Markdown форматирование</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="attachments" class="form-label">Вложения</label>
+                                <input class="form-control" type="file" id="attachments" name="attachments" multiple>
+                                <div class="form-text">Максимум 10 файлов, не более 10MB каждый</div>
+                                <div id="filePreview" class="mt-2"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Кнопки</label>
+                                <div id="buttonsContainer">
+                                    <div class="button-item mb-2">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" placeholder="Текст кнопки" maxlength="80">
+                                            <input type="url" class="form-control" placeholder="https://example.com">
+                                            <button type="button" class="btn btn-danger remove-btn">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="addButton">
+                                    <i class="bi bi-plus-circle"></i> Добавить кнопку
+                                </button>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="schedule" name="schedule">
+                                    <label class="form-check-label" for="schedule">Запланировать отправку</label>
+                                </div>
+                                
+                                <div id="scheduleDate" style="display: none;">
+                                    <label for="scheduledTime" class="form-label">Дата и время отправки</label>
+                                    <input type="datetime-local" class="form-control" id="scheduledTime" name="scheduledTime">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100 py-2">
+                                <i class="bi bi-send"></i> Опубликовать новость
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка - Предпросмотр и История -->
+            <div class="col-lg-6">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-eye"></i> Live-предпросмотр
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="previewContent" class="discord-preview">
+                            <p class="text-muted">Здесь будет отображаться предпросмотр вашего сообщения...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card shadow">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-clock-history"></i> История отправок
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush" id="historyList">
+                            <% if (history.length === 0) { %>
+                                <div class="list-group-item text-center text-muted">
+                                    <i class="bi bi-inbox display-4"></i>
+                                    <p class="mt-2">Нет отправленных сообщений</p>
+                                </div>
+                            <% } else { %>
+                                <% history.forEach(item => { %>
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between align-items-start">
+                                            <h6 class="mb-1">
+                                                <% if (item.sent) { %>
+                                                    <span class="badge bg-success">Отправлено</span>
+                                                <% } else if (item.canceled) { %>
+                                                    <span class="badge bg-secondary">Отменено</span>
+                                                <% } else { %>
+                                                    <span class="badge bg-warning">Запланировано</span>
+                                                <% } %>
+                                                <%= item.content.substring(0, 50) + (item.content.length > 50 ? '...' : '') %>
+                                            </h6>
+                                            <small class="text-muted"><%= new Date(item.createdAt).toLocaleDateString() %></small>
+                                        </div>
+                                        <p class="mb-1 text-muted">
+                                            Канал: <%= item.channelId %><br>
+                                            <% if (item.scheduledTime && !item.sent && !item.canceled) { %>
+                                                Запланировано на: <%= new Date(item.scheduledTime).toLocaleString() %>
+                                            <% } %>
+                                        </p>
+                                    </div>
+                                <% }); %>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для результатов -->
+    <div class="modal fade" id="resultModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Результат</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/js/script.js"></script>
+</body>
+</html>
