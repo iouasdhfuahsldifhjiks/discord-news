@@ -1,1 +1,343 @@
-[]
+[
+  {
+    "id": "ab66912e-d224-414e-b904-b8d71138f7d8",
+    "channelId": "1369532108531433604",
+    "content": "123",
+    "files": [
+      {
+        "originalname": "Ð¡Ð½Ð¸Ð¼Ð¾Ðº ÑÐºÑÐ°Ð½Ð°_20250902_161705.png",
+        "path": "/opt/discordnews/web/public/uploads/1756818323848-910241619.png",
+        "size": 29340,
+        "mimetype": "image/png"
+      }
+    ],
+    "roleId": null,
+    "buttons": [
+      {
+        "label": "123",
+        "url": "https://google.com"
+      }
+    ],
+    "scheduled": false,
+    "scheduledTime": "2025-09-02T13:05:23.850Z",
+    "createdAt": "2025-09-02T13:05:23.850Z",
+    "sent": true,
+    "canceled": false,
+    "sentAt": "2025-09-02T13:05:24.632Z",
+    "messageId": "1412423198233989243"
+  },
+  {
+    "id": "a1cb9335-6dd1-4a6c-a511-f4f267dae9b1",
+    "channelId": "1369532108531433604",
+    "content": "123",
+    "files": [
+      {
+        "originalname": "Ð¡Ð½Ð¸Ð¼Ð¾Ðº ÑÐºÑÐ°Ð½Ð°_20250831_234924.png",
+        "path": "/opt/discordnews/web/public/uploads/1756818340011-217905402.png",
+        "size": 5295,
+        "mimetype": "image/png"
+      }
+    ],
+    "roleId": "1362444269494866203",
+    "buttons": [
+      {
+        "label": "123",
+        "url": "https://google.com"
+      }
+    ],
+    "scheduled": false,
+    "scheduledTime": "2025-09-02T13:05:40.012Z",
+    "createdAt": "2025-09-02T13:05:40.012Z",
+    "sent": true,
+    "canceled": false,
+    "sentAt": "2025-09-02T13:05:40.658Z",
+    "messageId": "1412423265544175646"
+  },
+  {
+    "id": "2722ab51-7014-44cd-8b88-b0e4e9b4eb1d",
+    "channelId": "1369532108531433604",
+    "content": "'''sdaf'''",
+    "files": [],
+    "roleId": null,
+    "buttons": [
+      {
+        "label": "123",
+        "url": "https://google.com"
+      }
+    ],
+    "scheduled": false,
+    "scheduledTime": "2025-09-02T13:08:02.370Z",
+    "createdAt": "2025-09-02T13:08:02.370Z",
+    "sent": true,
+    "canceled": false,
+    "sentAt": "2025-09-02T13:08:02.615Z",
+    "messageId": "1412423862221803571"
+  },
+  {
+    "id": "7ecdeb9b-696b-46dc-bee6-8a2bb36d1926",
+    "channelId": "1369532108531433604",
+    "content": "\"\"\"123\"\"\"",
+    "files": [],
+    "roleId": null,
+    "buttons": [],
+    "scheduled": false,
+    "scheduledTime": "2025-09-02T13:08:22.584Z",
+    "createdAt": "2025-09-02T13:08:22.584Z",
+    "sent": true,
+    "canceled": false,
+    "sentAt": "2025-09-02T13:08:22.828Z",
+    "messageId": "1412423946619326475"
+  },
+  {
+    "id": "c231a0a9-5e42-4dd5-9f6c-84c5e7811abb",
+    "channelId": "1369532108531433604",
+    "content": "**жирный текст**",
+    "files": [],
+    "roleId": "1362444269494866203",
+    "buttons": [],
+    "scheduled": false,
+    "scheduledTime": "2025-09-02T13:15:40.037Z",
+    "createdAt": "2025-09-02T13:15:40.037Z",
+    "sent": true,
+    "canceled": false,
+    "sentAt": "2025-09-02T13:15:40.357Z",
+    "messageId": "1412425781849755679"
+  },
+  {
+    "id": "a0af720b-41bf-45d2-b2cd-eef4cf2286a3",
+    "channelId": "1369532108531433604",
+    "content": "123\r\nесли вы это видите значит emded и запланированная отправка работает",
+    "files": [],
+    "roleId": "1362444269494866203",
+    "buttons": [],
+    "embed": null,
+    "scheduled": true,
+    "scheduledTime": "2025-09-02T18:27",
+    "createdAt": "2025-09-02T13:26:03.175Z",
+    "sent": false,
+    "canceled": false
+  },
+  {
+    "id": "5c14cb57-86a1-4678-b503-a72311511151",
+    "channelId": "1369532108531433604",
+    "content": "123",
+    "files": [],
+    "roleId": null,
+    "buttons": [],
+    "embed": null,
+    "scheduled": true,
+    "scheduledTime": "2025-09-02T18:32",
+    "createdAt": "2025-09-02T13:31:14.104Z",
+    "sent": false,
+    "canceled": false
+  },
+  {
+    "id": "7c6c2012-13b2-4b92-ac22-891d49c05f98",
+    "channelId": "1369532108531433604",
+    "content": "123",
+    "files": [],
+    "roleId": null,
+    "buttons": [],
+    "embed": null,
+    "scheduled": true,
+    "scheduledTime": "2025-09-02T18:32",
+    "createdAt": "2025-09-02T13:33:29.355Z",
+    "sent": false,
+    "canceled": false
+  },
+  {
+    "id": "2394fa36-6fc7-4181-8d9a-a0b40eb3460e",
+    "channelId": "1369532108531433604",
+    "content": "123",
+    "files": [],
+    "roleId": null,
+    "buttons": [],
+    "embed": null,
+    "scheduled": true,
+    "scheduledTime": "2025-09-02T18:32",
+    "createdAt": "2025-09-02T13:34:09.629Z",
+    "sent": false,
+    "canceled": false
+  },
+  {
+    "id": "90ef347b-0db5-406d-b59f-0edc043bd175",
+    "channelId": "1369532108531433604",
+    "content": "123",
+    "files": [],
+    "roleId": null,
+    "buttons": [],
+    "embed": null,
+    "scheduled": true,
+    "scheduledTime": "2025-09-02T18:32",
+    "createdAt": "2025-09-02T13:39:00.200Z",
+    "sent": false,
+    "canceled": false
+  },
+  {
+    "id": "55940153-fa4e-4484-8543-2d226dd82b01",
+    "channelId": "1369532108531433604",
+    "content": "123",
+    "files": [],
+    "roleId": null,
+    "buttons": [],
+    "embed": null,
+    "scheduled": false,
+    "scheduledTime": "2025-09-02T13:39:26.963Z",
+    "createdAt": "2025-09-02T13:39:26.963Z",
+    "sent": true,
+    "canceled": false,
+    "sentAt": "2025-09-02T13:39:27.317Z",
+    "messageId": "1412431767230742638"
+  },
+  {
+    "id": "998aa22e-99e3-4a4d-9a8b-f0e3e18b7806",
+    "channelId": "1369532108531433604",
+    "content": "123",
+    "files": [],
+    "roleId": null,
+    "buttons": [],
+    "embed": null,
+    "scheduled": false,
+    "scheduledTime": "2025-09-02T13:40:12.911Z",
+    "createdAt": "2025-09-02T13:40:12.911Z",
+    "sent": true,
+    "canceled": false,
+    "sentAt": "2025-09-02T13:40:13.265Z",
+    "messageId": "1412431959744839801"
+  },
+  {
+    "id": "a78f9e0a-655b-42fc-880a-9c3e3f75f68e",
+    "channelId": "1369532108531433604",
+    "content": "123",
+    "files": [],
+    "roleId": null,
+    "buttons": [],
+    "embed": {
+      "title": "123",
+      "description": "123"
+    },
+    "scheduled": false,
+    "scheduledTime": "2025-09-02T14:15:25.676Z",
+    "createdAt": "2025-09-02T14:15:25.676Z",
+    "sent": true,
+    "canceled": false,
+    "sentAt": "2025-09-02T14:15:25.950Z",
+    "messageId": "1412440821483176018"
+  },
+  {
+    "id": "7ecee2e8-2a3b-48c3-9804-05667ed205b2",
+    "channelId": "1369532108531433604",
+    "content": "123",
+    "files": [],
+    "roleId": null,
+    "buttons": [],
+    "embed": {
+      "title": "123",
+      "description": "123"
+    },
+    "scheduled": false,
+    "scheduledTime": "2025-09-02T14:16:01.476Z",
+    "createdAt": "2025-09-02T14:16:01.476Z",
+    "sent": true,
+    "canceled": false,
+    "sentAt": "2025-09-02T14:16:01.885Z",
+    "messageId": "1412440971651715117"
+  },
+  {
+    "id": "0b90c9ca-a60e-4baf-bced-407ba25dfc59",
+    "channelId": "1369532108531433604",
+    "content": "123",
+    "files": [],
+    "roleId": null,
+    "buttons": [],
+    "embed": {
+      "title": "",
+      "description": "123"
+    },
+    "scheduled": false,
+    "scheduledTime": "2025-09-02T14:16:12.675Z",
+    "createdAt": "2025-09-02T14:16:12.675Z",
+    "sent": true,
+    "canceled": false,
+    "sentAt": "2025-09-02T14:16:13.004Z",
+    "messageId": "1412441018686771302"
+  },
+  {
+    "id": "15c2507a-46db-46be-b94d-1cf95224577d",
+    "channelId": "1369532108531433604",
+    "content": "123",
+    "files": [],
+    "roleId": null,
+    "buttons": [],
+    "embed": {
+      "title": "asd",
+      "description": "123"
+    },
+    "scheduled": false,
+    "scheduledTime": "2025-09-02T14:16:28.827Z",
+    "createdAt": "2025-09-02T14:16:28.827Z",
+    "sent": true,
+    "canceled": false,
+    "sentAt": "2025-09-02T14:16:29.191Z",
+    "messageId": "1412441086470656131"
+  },
+  {
+    "id": "bc14611c-69cd-42fd-9864-fbb4e1f7874c",
+    "channelId": "1369532108531433604",
+    "content": "привет",
+    "files": [],
+    "roleId": null,
+    "buttons": [],
+    "embed": {
+      "title": "asd123",
+      "description": "привет"
+    },
+    "scheduled": false,
+    "scheduledTime": "2025-09-02T14:17:15.399Z",
+    "createdAt": "2025-09-02T14:17:15.399Z",
+    "sent": true,
+    "canceled": false,
+    "sentAt": "2025-09-02T14:17:15.716Z",
+    "messageId": "1412441281711575080"
+  },
+  {
+    "id": "9a7d1f89-a42f-43ff-afd9-fd4eaef8b704",
+    "channelId": "1394307315590627379",
+    "content": "123",
+    "files": [],
+    "roleId": null,
+    "buttons": [],
+    "embed": {
+      "title": "123",
+      "description": "123",
+      "color": "#26a269"
+    },
+    "scheduled": false,
+    "scheduledTime": "2025-09-02T14:26:51.254Z",
+    "createdAt": "2025-09-02T14:26:51.254Z",
+    "sent": true,
+    "canceled": false,
+    "sentAt": "2025-09-02T14:26:51.543Z",
+    "messageId": "1412443697127227423"
+  },
+  {
+    "id": "5a1eff11-e4aa-43db-9c76-c744ba48d044",
+    "channelId": "1362915986281468124",
+    "content": "Я это сделал\r\nНаписал для вас дискорд бота который будет публиковать сюда новости по серверу с красивым форматированием, заняло **10796** строк кода и больше\r\nПотратил 2 дня и видимо целостность своей жопы\r\nИбо от стула она теперь не отлипает\r\n",
+    "files": [],
+    "roleId": null,
+    "buttons": [],
+    "embed": {
+      "title": "Я смог",
+      "description": "Я это сделал\nНаписал для вас дискорд бота который будет публиковать сюда новости по серверу с красивым форматированием, заняло **10796** строк кода и больше\nПотратил 2 дня и видимо целостность своей жопы\nИбо от стула она теперь не отлипает",
+      "color": "#33d17a"
+    },
+    "scheduled": false,
+    "scheduledTime": "2025-09-02T14:36:17.244Z",
+    "createdAt": "2025-09-02T14:36:17.244Z",
+    "sent": true,
+    "canceled": false,
+    "sentAt": "2025-09-02T14:36:18.000Z",
+    "messageId": "1412446071271067778"
+  }
+]

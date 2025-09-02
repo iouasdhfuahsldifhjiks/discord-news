@@ -2,6 +2,7 @@ const { Client, GatewayIntentBits, AttachmentBuilder, ActionRowBuilder, ButtonBu
 const path = require('path');
 const fs = require('fs').promises;
 require('dotenv').config({ path: path.join(__dirname, '../web/.env') });
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -11,20 +12,20 @@ const client = new Client({
     GatewayIntentBits.GuildPresences
   ]
 });
+
 // Хранилище для планировщика
 const scheduledMessages = new Map();
+
 client.once('ready', async () => {
   console.log(`✅ Бот авторизован как ${client.user.tag}`);
   console.log(`📊 На ${client.guilds.cache.size} серверах`);
   
-  // Загрузка истории сообщений
   try {
     const historyPath = path.join(__dirname, '../web/data/history.json');
     await fs.access(historyPath);
     const historyData = await fs.readFile(historyPath, 'utf8');
     const history = JSON.parse(historyData || '[]');
     
-    // Восстановление запланированных сообщений
     const now = new Date();
     for (const item of history) {
       if (item.scheduled && item.scheduledTime && !item.sent && !item.canceled) {
@@ -35,29 +36,36 @@ client.once('ready', async () => {
         }
       }
     }
-  } catch (error) {
+  } catch {
     console.log('ℹ История сообщений не найдена, создаем новую');
   }
 });
+
 // Функция для отправки сообщения
 async function sendDiscordMessage(channelId, content, files = [], roleId = null, buttons = [], embedData = null) {
   try {
     const channel = await client.channels.fetch(channelId);
-    if (!channel) {
-      throw new Error('Канал не найден!');
+    if (!channel) throw new Error('Канал не найден!');
+    if (!channel.isTextBased()) throw new Error('Указанный канал не является текстовым!');
+
+    // Формируем упоминание роли отдельно
+    const roleMention = roleId ? `<@&${roleId}>` : null;
+
+    // Если есть embedData — не отправляем текстовый контент (чтобы не дублировать),
+    // отправляем только упоминание роли (если нужно). Если embed отсутствует — отправляем полный текст.
+    let contentToSend;
+    if (embedData) {
+      contentToSend = roleMention || null;
+    } else {
+      contentToSend = (roleMention ? roleMention + ' ' : '') + (content || '');
     }
-    if (!channel.isTextBased()) {
-      throw new Error('Указанный канал не является текстовым!');
-    }
-    let finalContent = content;
-    if (roleId) {
-      finalContent = `<@&${roleId}> ${content}`;
-    }
-    // Создание вложений
-    const attachments = files.map(file => 
+
+    // Вложения
+    const attachments = (files || []).map(file =>
       new AttachmentBuilder(file.path, { name: file.originalname })
     );
-    // Создание кнопок
+
+    // Кнопки
     let components = [];
     if (buttons && buttons.length > 0) {
       const row = new ActionRowBuilder();
@@ -71,35 +79,53 @@ async function sendDiscordMessage(channelId, content, files = [], roleId = null,
           );
         }
       });
-      if (row.components.length > 0) {
-        components.push(row);
-      }
+      if (row.components.length > 0) components.push(row);
     }
-    // Создание embed (если нужно)
+
+    // Embed
     let embeds = [];
-    if (embedData && embedData.title) {
-      const embed = new EmbedBuilder()
-        .setTitle(embedData.title)
-        .setColor(embedData.color || 0x0099FF);
-      
+    if (embedData) {
+      const embed = new EmbedBuilder();
+
+      if (embedData.title) embed.setTitle(embedData.title);
       if (embedData.description) embed.setDescription(embedData.description);
+
+      // Цвет может прийти как "#rrggbb" или как число
+      if (embedData.color) {
+        try {
+          if (typeof embedData.color === 'string') {
+            const hex = embedData.color.replace('#', '').trim();
+            if (/^[0-9A-Fa-f]{6}$/.test(hex)) {
+              embed.setColor(parseInt(hex, 16));
+            } else {
+              const num = Number(embedData.color);
+              if (!isNaN(num)) embed.setColor(num);
+            }
+          } else if (typeof embedData.color === 'number') {
+            embed.setColor(embedData.color);
+          }
+        } catch (e) {
+          // ignore color parse error
+        }
+      }
+
       if (embedData.image) embed.setImage(embedData.image);
       if (embedData.thumbnail) embed.setThumbnail(embedData.thumbnail);
       if (embedData.footer) embed.setFooter({ text: embedData.footer });
-      
       embeds.push(embed);
     }
-    // Отправка сообщения
+
     const messageOptions = {
-      content: finalContent,
+      content: contentToSend,
       files: attachments,
       components: components,
       embeds: embeds,
-      allowedMentions: { 
+      allowedMentions: {
         roles: roleId ? [roleId] : [],
         users: []
       }
     };
+
     const sentMessage = await channel.send(messageOptions);
     return { success: true, messageId: sentMessage.id };
   } catch (error) {
@@ -107,7 +133,8 @@ async function sendDiscordMessage(channelId, content, files = [], roleId = null,
     return { success: false, error: error.message };
   }
 }
-// Функция для планирования сообщения
+
+// Планировщик (остался без изменений)
 function scheduleMessage(messageData) {
   const { scheduledTime, channelId, content, files, roleId, buttons, embed } = messageData;
   const time = new Date(scheduledTime);
@@ -151,7 +178,7 @@ function scheduleMessage(messageData) {
   scheduledMessages.set(messageData.id, timerId);
   return { success: true, id: messageData.id };
 }
-// Функция отмены запланированного сообщения
+
 function cancelScheduledMessage(messageId) {
   const timerId = scheduledMessages.get(messageId);
   if (timerId) {
@@ -161,34 +188,28 @@ function cancelScheduledMessage(messageId) {
   }
   return false;
 }
-// Функция для получения данных сервера
+
 async function getGuildData(guildId) {
   try {
     const guild = await client.guilds.fetch(guildId);
-    await guild.members.fetch(); // Кэшируем участников
-    await guild.roles.fetch();   // Кэшируем роли
-    await guild.channels.fetch(); // Кэшируем каналы
+    await guild.members.fetch();
+    await guild.roles.fetch();
+    await guild.channels.fetch();
     const channels = guild.channels.cache
       .filter(ch => ch.isTextBased() && ch.viewable)
-      .map(ch => ({ 
-        id: ch.id, 
-        name: `#${ch.name}`, 
-        type: ch.type 
-      }));
+      .map(ch => ({ id: ch.id, name: `#${ch.name}`, type: ch.type }));
     const roles = guild.roles.cache
       .filter(role => !role.managed && role.name !== '@everyone' && !role.tags)
-      .map(role => ({ 
-        id: role.id, 
-        name: role.name, 
-        color: role.hexColor 
-      }));
+      .map(role => ({ id: role.id, name: role.name, color: role.hexColor }));
     return { channels, roles, guildName: guild.name };
   } catch (error) {
     console.error('❌ Ошибка получения данных сервера:', error);
     return { channels: [], roles: [], guildName: 'Unknown' };
   }
 }
+
 client.login(process.env.BOT_TOKEN);
+
 module.exports = {
   client,
   sendDiscordMessage,
