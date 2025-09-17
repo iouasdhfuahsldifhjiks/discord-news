@@ -5,49 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Авторизация - Discord News Bot</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/style.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-4">
-                <div class="card shadow">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <h2 class="card-title">🔐 Авторизация</h2>
-                            <p class="text-muted">Введите пароль для доступа к панели управления</p>
-                        </div>
-                        
-                        <% if (error) { %>
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <%= error %>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        <% } %>
+    <style>
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--discord-surface) 0%, var(--discord-bg) 100%);
+            padding: 20px;
+        }
 
-                        <form method="POST">
-                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                            
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Пароль</label>
-                                <input type="password" class="form-control" id="password" name="password" 
-                                       required autocomplete="current-password" autofocus>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary w-100 py-2">
-                                <span class="fw-bold">Войти</span>
-                            </button>
-                        </form>
-                    </div>
+        .login-card {
+            background: var(--discord-card);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            background: linear-gradient(to right, var(--discord-primary), var(--discord-primary-hover));
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .login-body {
+            padding: 2rem;
+        }
+
+        .login-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <i class="bi bi-megaphone login-icon"></i>
+            <h2>Discord News Bot</h2>
+            <p class="mb-0">Панель управления</p>
+        </div>
+        <div class="login-body">
+            <% if (error) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i> <%= error %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                
-                <div class="text-center mt-3">
-                    <p class="text-muted">© 2025 Discord News Bot</p>
+            <% } %>
+
+            <form method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">
+                        <i class="bi bi-key"></i> Пароль
+                    </label>
+                    <input type="password" class="form-control" id="password" name="password"
+                           required autocomplete="current-password" autofocus>
                 </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2">
+                    <i class="bi bi-box-arrow-in-right"></i> Войти
+                </button>
+            </form>
+
+            <div class="text-center mt-4">
+                <p class="text-muted">© 2025 Discord News Bot</p>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

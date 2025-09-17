@@ -1,160 +1,524 @@
+/* css */
 :root {
     --discord-bg: #36393f;
-    --discord-text: #dcddde;
+    --discord-surface: #2f3136;
+    --discord-card: #40444b;
+    --discord-text: #f2f3f5;
+    --discord-muted: #72767d;
     --discord-primary: #5865f2;
+    --discord-primary-hover: #4752c4;
     --discord-success: #57f287;
     --discord-danger: #ed4245;
+    --discord-border: rgba(79, 84, 92, 0.48);
+    --discord-accent: #8ea1e1;
+    --discord-highlight: rgba(114, 137, 218, 0.1);
 }
 
 body {
-    background-color: #f8f9fa;
+    background: linear-gradient(135deg, var(--discord-surface) 0%, var(--discord-bg) 100%);
+    color: var(--discord-text);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
+    min-height: 100vh;
 }
 
+/* Навигация */
+.navbar {
+    background: var(--discord-card) !important;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+    padding: 0.8rem 1.5rem;
+    border-bottom: 1px solid var(--discord-border);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: var(--discord-text);
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.navbar-brand i {
+    color: var(--discord-primary);
+    font-size: 1.6rem;
+}
+
+.navbar-text {
+    color: var(--discord-muted) !important;
+    font-weight: 500;
+}
+
+.btn-outline-light {
+    border-color: var(--discord-border);
+    color: var(--discord-text);
+}
+
+.btn-outline-light:hover {
+    background: var(--discord-primary);
+    border-color: var(--discord-primary);
+}
+
+/* Основной контент */
+.container-fluid {
+    padding: 20px;
+}
+
+/* Карточки */
+.card {
+    border: none;
+    border-radius: 16px;
+    background: var(--discord-card);
+    color: var(--discord-text);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+    margin-bottom: 25px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.card-header {
+    border-bottom: 1px solid var(--discord-border);
+    font-weight: 700;
+    background: linear-gradient(to right, rgba(88, 101, 242, 0.15), transparent);
+    color: var(--discord-text);
+    padding: 1.2rem 1.5rem;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-body {
+    padding: 1.8rem;
+}
+
+/* Заголовки разделов */
+.section-title {
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+    color: var(--discord-text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.3rem;
+}
+
+.section-title i {
+    color: var(--discord-primary);
+    font-size: 1.4rem;
+}
+
+/* Формы */
+.form-label {
+    font-weight: 600;
+    margin-bottom: 0.7rem;
+    color: var(--discord-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-label i {
+    color: var(--discord-primary);
+}
+
+.form-control, .form-select {
+    background: var(--discord-bg);
+    border: 1px solid var(--discord-border);
+    color: var(--discord-text);
+    border-radius: 10px;
+    padding: 0.85rem 1.2rem;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.3);
+    border-color: var(--discord-primary);
+    outline: none;
+    background: var(--discord-bg);
+    color: var(--discord-text);
+}
+
+.form-text {
+    color: var(--discord-muted) !important;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+/* Кнопки */
+.btn {
+    border-radius: 10px;
+    padding: 0.85rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: var(--discord-primary);
+    border: none;
+    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
+}
+
+.btn-primary:hover {
+    background: var(--discord-primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(88, 101, 242, 0.4);
+}
+
+.btn-success {
+    background: var(--discord-success);
+    border: none;
+    box-shadow: 0 4px 12px rgba(87, 242, 135, 0.3);
+}
+
+.btn-success:hover {
+    background: #47d175;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(87, 242, 135, 0.4);
+}
+
+.btn-outline-secondary {
+    border-color: var(--discord-border);
+    color: var(--discord-muted);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--discord-border);
+    border-color: var(--discord-border);
+    color: var(--discord-text);
+}
+
+/* Превью сообщения */
 .discord-preview {
-    background-color: var(--discord-bg);
+    background: var(--discord-bg);
     color: var(--discord-text);
     padding: 1.5rem;
-    border-radius: 8px;
-    min-height: 300px;
+    border-radius: 12px;
+    min-height: 250px;
     font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    border: 1px solid var(--discord-border);
+    transition: all 0.3s ease;
+    position: relative;
 }
 
-.discord-preview .role-mention {
+.discord-preview::before {
+    content: 'Live-предпросмотр';
+    position: absolute;
+    top: -12px;
+    left: 15px;
+    background: var(--discord-primary);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.discord-preview:hover {
+    border-color: var(--discord-primary);
+}
+
+.discord-preview p {
+    color: var(--discord-text) !important;
+    margin-bottom: 0.8rem;
+    line-height: 1.5;
+}
+
+/* Акцент на упоминаниях/ролях */
+.role-mention {
     color: var(--discord-primary);
     font-weight: bold;
-    background-color: rgba(88, 101, 242, 0.1);
-    padding: 0 4px;
-    border-radius: 3px;
+    background-color: rgba(88, 101, 242, 0.15);
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 0.5rem;
 }
 
+/* Кнопки в превью */
 .discord-preview .button {
     display: inline-block;
-    padding: 8px 16px;
-    margin: 4px;
-    background-color: var(--discord-primary);
+    padding: 0.6rem 1.2rem;
+    margin: 0.5rem 0.8rem 0.5rem 0;
+    background: var(--discord-primary);
     color: white;
     text-decoration: none;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: background-color 0.2s;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(88, 101, 242, 0.2);
 }
 
 .discord-preview .button:hover {
-    background-color: #4752c4;
+    background: var(--discord-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(88, 101, 242, 0.3);
 }
 
+/* Превью файлов */
 .upload-preview {
     max-width: 100px;
     max-height: 100px;
     margin-right: 10px;
     margin-bottom: 10px;
-    border-radius: 4px;
+    border-radius: 8px;
     object-fit: cover;
+    border: 1px solid var(--discord-border);
+    background-color: rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.upload-preview:hover {
+    transform: scale(1.05);
+    border-color: var(--discord-primary);
 }
 
 .file-preview-item {
     display: flex;
     align-items: center;
-    background-color: #f8f9fa;
-    padding: 8px;
-    border-radius: 4px;
-    margin-bottom: 8px;
-}
-
-.file-preview-item img {
-    margin-right: 10px;
-}
-
-.btn-discord {
-    background-color: var(--discord-primary);
-    color: white;
-    border: none;
-}
-
-.btn-discord:hover {
-    background-color: #4752c4;
-    color: white;
-}
-
-.navbar-brand {
-    font-weight: 600;
-}
-
-.card {
-    border: none;
+    background: var(--discord-bg);
+    padding: 10px;
     border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid var(--discord-border);
+    transition: all 0.2s ease;
 }
 
-.card-header {
-    border-radius: 8px 8px 0 0 !important;
-    font-weight: 600;
+.file-preview-item:hover {
+    border-color: var(--discord-primary);
+    transform: translateX(4px);
 }
 
-.list-group-item {
-    border: 1px solid rgba(0, 0, 0, 0.125);
-    margin-bottom: 8px;
-    border-radius: 6px;
+/* Переключатели */
+.form-check-input {
+    background-color: var(--discord-bg);
+    border: 1px solid var(--discord-border);
+    width: 2.8em;
+    height: 1.5em;
+}
+
+.form-check-input:checked {
+    background-color: var(--discord-primary);
+    border-color: var(--discord-primary);
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.15rem rgba(88, 101, 242, 0.25);
+    border-color: var(--discord-primary);
+}
+
+.form-check-label {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* История отправок */
+.history-item {
+    border: 1px solid var(--discord-border);
+    margin-bottom: 12px;
+    border-radius: 10px;
+    background: var(--discord-bg);
+    color: var(--discord-text);
+    transition: all 0.2s ease;
+    padding: 1rem;
+}
+
+.history-item:hover {
+    border-color: var(--discord-primary);
+    transform: translateX(4px);
 }
 
 .badge {
     font-size: 0.75em;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--discord-text);
+    border-radius: 20px;
+    padding: 0.5em 1em;
+    font-weight: 600;
 }
 
 /* Анимации */
 .fade-in {
-    animation: fadeIn 0.3s ease-in;
+    animation: fadeIn 0.4s ease-in;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 /* Адаптивность */
+@media (max-width: 992px) {
+    .container-fluid {
+        padding: 15px;
+    }
+
+    .card-body {
+        padding: 1.2rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+}
+
 @media (max-width: 768px) {
     .container-fluid {
-        padding: 0 15px;
+        padding: 10px;
     }
-    
-    .card-body {
+
+    .card-header {
         padding: 1rem;
     }
-    
-    .navbar-brand {
-        font-size: 1.1rem;
+
+    .btn {
+        padding: 0.75rem 1.2rem;
     }
 }
 
-/* Стили для предпросмотра Discord сообщения */
-.discord-message {
-    background-color: #2f3136;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
+/* Кастомный скроллбар */
+::-webkit-scrollbar {
+    width: 8px;
 }
 
-.discord-message-content {
-    color: var(--discord-text);
-    line-height: 1.4;
+::-webkit-scrollbar-track {
+    background: var(--discord-bg);
 }
 
-.discord-embed {
-    background-color: #2f3136;
-    border-left: 4px solid var(--discord-primary);
-    padding: 0.5rem 1rem;
+::-webkit-scrollbar-thumb {
+    background: var(--discord-border);
     border-radius: 4px;
-    margin: 0.5rem 0;
 }
 
-.discord-embed-title {
+::-webkit-scrollbar-thumb:hover {
+    background: var(--discord-muted);
+}
+
+/* Улучшение для полей ввода времени */
+input[type="datetime-local"] {
+    padding: 0.85rem 1.2rem;
+}
+
+/* Стили для Embed превью */
+.embed-preview {
+    background: linear-gradient(90deg, rgba(88, 101, 242, 0.1) 0%, transparent 100%);
+    border-radius: 8px;
+    padding: 12px;
+    border-left: 4px solid var(--discord-primary);
+    margin: 10px 0;
+}
+
+.embed-title {
+    font-weight: 700;
     color: var(--discord-primary);
-    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+
+.embed-desc {
+    color: var(--discord-text);
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+/* Иконки в формах */
+.input-with-icon {
+    position: relative;
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--discord-muted);
+    z-index: 5;
+}
+
+.input-with-icon .form-control,
+.input-with-icon .form-select {
+    padding-left: 45px;
+}
+
+/* Анимация появления элементов */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card, .history-item, .form-control, .btn {
+    animation: slideIn 0.4s ease-out;
+}
+
+/* Progress bar для кнопки отправки */
+.progress {
+    height: 4px;
+    background: var(--discord-bg);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 10px;
+    display: none;
+}
+
+.progress-bar {
+    background: var(--discord-primary);
+    transition: width 0.3s ease;
+}
+
+/* Исправление для текста в предпросмотре */
+.discord-preview,
+.discord-preview *:not(.button):not(.role-mention) {
+    color: var(--discord-text) !important;
+}
+
+.discord-preview p {
     margin-bottom: 0.5rem;
 }
 
-.discord-embed-description {
-    color: var(--discord-text);
-    font-size: 0.9em;
+.discord-preview .text-muted {
+    color: var(--discord-muted) !important;
+}
+
+/* Улучшение читаемости текста */
+.discord-preview {
+    line-height: 1.5;
+    font-size: 1rem;
+}
+
+/* Контраст для кода */
+.discord-preview code {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    color: #fff;
 }

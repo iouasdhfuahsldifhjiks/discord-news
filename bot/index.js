@@ -13,13 +13,14 @@ const client = new Client({
   ]
 });
 
-// Хранилище для планировщика
+// Планировщик
 const scheduledMessages = new Map();
 
 client.once('ready', async () => {
   console.log(`✅ Бот авторизован как ${client.user.tag}`);
   console.log(`📊 На ${client.guilds.cache.size} серверах`);
-  
+
+  // восстановление запланированных
   try {
     const historyPath = path.join(__dirname, '../web/data/history.json');
     await fs.access(historyPath);
@@ -41,19 +42,27 @@ client.once('ready', async () => {
   }
 });
 
-// Функция для отправки сообщения
+// Отправка сообщения
 async function sendDiscordMessage(channelId, content, files = [], roleId = null, buttons = [], embedData = null) {
   try {
     const channel = await client.channels.fetch(channelId);
     if (!channel) throw new Error('Канал не найден!');
     if (!channel.isTextBased()) throw new Error('Указанный канал не является текстовым!');
 
-    // Формируем упоминание роли отдельно
-    const roleMention = roleId ? `<@&${roleId}>` : null;
+    // Упоминание роли/everyone
+    let roleMention = null;
+    let allowedMentions = { parse: [], roles: [], users: [] };
 
-    // Если есть embedData — не отправляем текстовый контент (чтобы не дублировать),
-    // отправляем только упоминание роли (если нужно). Если embed отсутствует — отправляем полный текст.
-    let contentToSend;
+    if (roleId === '@everyone') {
+      roleMention = '@everyone';
+      allowedMentions.parse.push('everyone');
+    } else if (roleId) {
+      roleMention = `<@&${roleId}>`;
+      allowedMentions.roles = [roleId];
+    }
+
+    // Контент: если есть embed — не дублируем текст, оставляем только упоминание (если есть)
+    let contentToSend = null;
     if (embedData) {
       contentToSend = roleMention || null;
     } else {
@@ -86,11 +95,9 @@ async function sendDiscordMessage(channelId, content, files = [], roleId = null,
     let embeds = [];
     if (embedData) {
       const embed = new EmbedBuilder();
-
       if (embedData.title) embed.setTitle(embedData.title);
       if (embedData.description) embed.setDescription(embedData.description);
 
-      // Цвет может прийти как "#rrggbb" или как число
       if (embedData.color) {
         try {
           if (typeof embedData.color === 'string') {
@@ -104,9 +111,7 @@ async function sendDiscordMessage(channelId, content, files = [], roleId = null,
           } else if (typeof embedData.color === 'number') {
             embed.setColor(embedData.color);
           }
-        } catch (e) {
-          // ignore color parse error
-        }
+        } catch {}
       }
 
       if (embedData.image) embed.setImage(embedData.image);
@@ -118,12 +123,9 @@ async function sendDiscordMessage(channelId, content, files = [], roleId = null,
     const messageOptions = {
       content: contentToSend,
       files: attachments,
-      components: components,
-      embeds: embeds,
-      allowedMentions: {
-        roles: roleId ? [roleId] : [],
-        users: []
-      }
+      components,
+      embeds,
+      allowedMentions
     };
 
     const sentMessage = await channel.send(messageOptions);
@@ -134,7 +136,7 @@ async function sendDiscordMessage(channelId, content, files = [], roleId = null,
   }
 }
 
-// Планировщик (остался без изменений)
+// Планировщик
 function scheduleMessage(messageData) {
   const { scheduledTime, channelId, content, files, roleId, buttons, embed } = messageData;
   const time = new Date(scheduledTime);
@@ -145,7 +147,6 @@ function scheduleMessage(messageData) {
   }
   
   const timeout = time.getTime() - now.getTime();
-  
   if (timeout > 2147483647) {
     return { success: false, error: 'Слишком большое время планирования! Максимум 24 дня.' };
   }
@@ -155,12 +156,10 @@ function scheduleMessage(messageData) {
       await sendDiscordMessage(channelId, content, files, roleId, buttons, embed);
       console.log(`✅ Запланированное сообщение отправлено в канал ${channelId}`);
       
-      // Обновляем историю
       try {
         const historyPath = path.join(__dirname, '../web/data/history.json');
         const historyData = await fs.readFile(historyPath, 'utf8');
         let history = JSON.parse(historyData || '[]');
-        
         const index = history.findIndex(item => item.id === messageData.id);
         if (index !== -1) {
           history[index].sent = true;
@@ -195,12 +194,16 @@ async function getGuildData(guildId) {
     await guild.members.fetch();
     await guild.roles.fetch();
     await guild.channels.fetch();
+
     const channels = guild.channels.cache
       .filter(ch => ch.isTextBased() && ch.viewable)
       .map(ch => ({ id: ch.id, name: `#${ch.name}`, type: ch.type }));
+
+    // @everyone не добавляем сюда, он есть статично на фронте
     const roles = guild.roles.cache
       .filter(role => !role.managed && role.name !== '@everyone' && !role.tags)
       .map(role => ({ id: role.id, name: role.name, color: role.hexColor }));
+
     return { channels, roles, guildName: guild.name };
   } catch (error) {
     console.error('❌ Ошибка получения данных сервера:', error);

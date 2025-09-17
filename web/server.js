@@ -20,6 +20,7 @@ const {
 const app = express();
 const port = process.env.PORT || 30000;
 
+// Security
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -35,9 +36,12 @@ app.use(helmet({
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'change-me',
   resave: false,
   saveUninitialized: false,
   cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
@@ -45,11 +49,13 @@ app.use(session({
 
 const csrfProtection = csrf();
 
+// simple password auth
 function requireAuth(req, res, next) {
   if (req.session.authenticated) return next();
   res.redirect('/login');
 }
 
+// guild data middleware
 async function attachGuildData(req, res, next) {
   try {
     if (req.session.authenticated && process.env.GUILD_ID) {
@@ -62,6 +68,7 @@ async function attachGuildData(req, res, next) {
 }
 app.use(attachGuildData);
 
+// uploads
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
     const uploadDir = path.join(__dirname, 'public/uploads');
@@ -89,8 +96,12 @@ const upload = multer({
   }
 });
 
+// static + views
 app.use(express.static(path.join(__dirname, 'public')));
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
+// routes
 app.get('/login', csrfProtection, (req, res) => {
   if (req.session.authenticated) return res.redirect('/');
   res.render('login', { csrfToken: req.csrfToken(), error: null });
@@ -102,7 +113,7 @@ app.post('/login', csrfProtection, async (req, res) => {
     return res.render('login', { csrfToken: req.csrfToken(), error: 'Введите пароль' });
   }
   try {
-    const isMatch = await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH);
+    const isMatch = await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH || '');
     if (isMatch) {
       req.session.authenticated = true;
       res.redirect('/');
@@ -146,11 +157,15 @@ app.get('/', requireAuth, csrfProtection, async (req, res) => {
 app.post('/api/send-news', requireAuth, csrfProtection, upload.array('attachments'), async (req, res) => {
   try {
     const { channel, role, content, scheduledTime, buttons, embed } = req.body;
-    
-    // теперь требуется либо контент, либо embed
+
     if (!channel || (!content && !embed)) {
       return res.status(400).json({ success: false, error: 'Заполните обязательные поля' });
     }
+
+    // role mapping (everyone)
+    let roleId = null;
+    if (role === 'everyone') roleId = '@everyone';
+    else if (role) roleId = role;
 
     const files = req.files ? req.files.map(file => ({
       originalname: file.originalname,
@@ -163,26 +178,25 @@ app.post('/api/send-news', requireAuth, csrfProtection, upload.array('attachment
     try {
       if (buttons) {
         buttonArray = JSON.parse(buttons);
-        buttonArray = buttonArray.filter(btn => 
-          btn && btn.label && btn.url && btn.label.length <= 80 && btn.url.startsWith('http')
+        buttonArray = buttonArray.filter(btn =>
+          btn && btn.label && btn.url && btn.label.length <= 80 && /^https?:\/\//i.test(btn.url)
         ).slice(0, 5);
       }
     } catch {}
 
-    // парсим embed, если пришёл
     let embedData = null;
     try {
       if (embed) embedData = JSON.parse(embed);
     } catch (err) {
-      console.error("Ошибка парсинга embed:", err);
+      console.error('Ошибка парсинга embed:', err);
     }
 
     const messageData = {
       id: uuidv4(),
       channelId: channel,
       content: content || '',
-      files: files,
-      roleId: role || null,
+      files,
+      roleId,
       buttons: buttonArray,
       embed: embedData,
       scheduled: !!scheduledTime,
@@ -209,7 +223,7 @@ app.post('/api/send-news', requireAuth, csrfProtection, upload.array('attachment
         res.status(400).json({ success: false, error: result.error });
       }
     } else {
-      const result = await sendDiscordMessage(channel, content, files, role, buttonArray, embedData);
+      const result = await sendDiscordMessage(channel, content, files, roleId, buttonArray, embedData);
       if (result.success) {
         const index = history.findIndex(item => item.id === messageData.id);
         if (index !== -1) {
@@ -271,6 +285,7 @@ app.get('/api/roles', requireAuth, async (req, res) => {
   }
 });
 
+// errors
 app.use((error, req, res, next) => {
   console.error(error);
   if (error.code === 'EBADCSRFTOKEN') {
@@ -279,9 +294,7 @@ app.use((error, req, res, next) => {
   res.status(500).send(`Ошибка сервера: ${error.message}`);
 });
 
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-
+// start
 app.listen(port, '0.0.0.0', () => {
   console.log(`🌐 Веб-панель запущена на http://localhost:${port}`);
   console.log(`🤖 Бот должен запуститься автоматически`);

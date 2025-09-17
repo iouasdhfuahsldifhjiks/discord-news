@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Элементы DOM
+    // DOM
     const newsForm = document.getElementById('newsForm');
     const contentTextarea = document.getElementById('content');
     const channelSelect = document.getElementById('channel');
@@ -12,32 +12,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const buttonsContainer = document.getElementById('buttonsContainer');
     const filePreview = document.getElementById('filePreview');
 
-    // embed elements
     const useEmbed = document.getElementById('useEmbed');
     const embedFields = document.getElementById('embedFields');
-    const embedTitleInput = document.getElementById('embedTitle');
-    const embedColorInput = document.getElementById('embedColor');
+    const embedTitle = document.getElementById('embedTitle');
+    const embedColor = document.getElementById('embedColor');
     const embedColorHex = document.getElementById('embedColorHex');
 
-    // синхронизация color <-> hex
-    if (embedColorInput && embedColorHex) {
-        embedColorInput.addEventListener('input', () => {
-            embedColorHex.value = embedColorInput.value;
-            updatePreview();
-        });
-        embedColorHex.addEventListener('input', () => {
-            const v = embedColorHex.value.trim();
-            if (/^#?[0-9A-Fa-f]{6}$/.test(v)) {
-                embedColorInput.value = v.startsWith('#') ? v : '#' + v;
-                updatePreview();
-            }
-        });
-    }
-
     let currentFiles = [];
+
+    // init
     updatePreview();
 
-    // Обработчики
+    // handlers
     contentTextarea.addEventListener('input', updatePreview);
     channelSelect.addEventListener('change', updatePreview);
     roleSelect.addEventListener('change', updatePreview);
@@ -45,45 +31,74 @@ document.addEventListener('DOMContentLoaded', function() {
     scheduleCheckbox.addEventListener('change', toggleScheduler);
     addButtonBtn.addEventListener('click', addButtonRow);
 
-    if (useEmbed) {
-        useEmbed.addEventListener('change', () => {
-            embedFields.style.display = useEmbed.checked ? 'block' : 'none';
+    useEmbed.addEventListener('change', () => {
+        embedFields.style.display = useEmbed.checked ? 'block' : 'none';
+        updatePreview();
+    });
+
+    // sync color inputs
+    embedColor.addEventListener('input', () => {
+        embedColorHex.value = embedColor.value;
+        updatePreview();
+    });
+    embedColorHex.addEventListener('input', () => {
+        let v = embedColorHex.value.trim();
+        if (!v.startsWith('#')) v = '#' + v;
+        if (/^#[0-9A-Fa-f]{6}$/.test(v)) {
+            embedColor.value = v;
             updatePreview();
-        });
-    }
+        }
+    });
 
     function getCSRFToken() {
         const el = document.querySelector('input[name="_csrf"]');
         return el ? el.value : '';
     }
 
+    // submit
     newsForm.addEventListener('submit', async function(e) {
         e.preventDefault();
 
         const submitBtn = this.querySelector('button[type="submit"]');
+        const progress = document.querySelector('.progress');
+        const progressBar = document.querySelector('.progress-bar');
         const originalText = submitBtn.innerHTML;
 
         try {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Отправка...';
+            progress.style.display = 'block';
 
-            // Формируем форму
+            // Анимация прогресса
+            let width = 0;
+            const progressInterval = setInterval(() => {
+                if (width >= 90) {
+                    clearInterval(progressInterval);
+                } else {
+                    width += 5;
+                    progressBar.style.width = width + '%';
+                }
+            }, 100);
+
             const formData = new FormData(newsForm);
 
-            // Кнопки
+            // buttons -> JSON
             formData.set('buttons', JSON.stringify(getButtonsData()));
 
-            // Embed
-            if (useEmbed && useEmbed.checked) {
-                const embed = {
-                    title: embedTitleInput.value.trim(),
-                    description: contentTextarea.value.trim(),
-                    color: (embedColorInput && embedColorInput.value) ? embedColorInput.value : undefined
+            // embed -> JSON (если включён)
+            if (useEmbed.checked) {
+                const embedObj = {
+                    title: (embedTitle.value || '').trim() || undefined,
+                    description: (contentTextarea.value || '').trim() || undefined,
+                    color: (embedColorHex.value || '#2f3136').trim()
                 };
-                formData.append('embed', JSON.stringify(embed));
+                formData.set('embed', JSON.stringify(embedObj));
+            } else {
+                formData.delete('embed');
             }
 
-            const csrf = formData.get('_csrf') || getCSRFToken();
+            // optional header csrf
+            const csrf = getCSRFToken();
             const headers = csrf ? { 'X-CSRF-Token': csrf } : undefined;
 
             const response = await fetch('/api/send-news', {
@@ -94,84 +109,91 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const result = await response.json();
 
+            // Завершаем прогресс-бар
+            progressBar.style.width = '100%';
+
             if (result.success) {
                 showModal('✅ Успех', result.message);
                 resetForm();
-                setTimeout(() => window.location.reload(), 2000);
+                setTimeout(() => {
+                    progress.style.display = 'none';
+                    window.location.reload();
+                }, 1200);
             } else {
                 showModal('❌ Ошибка', result.error || 'Произошла ошибка при отправке');
+                progress.style.display = 'none';
             }
         } catch (error) {
             console.error('Ошибка:', error);
             showModal('❌ Ошибка', 'Произошла ошибка при отправке');
+            progress.style.display = 'none';
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
         }
     });
 
-    // Preview
+    // preview
     function updatePreview() {
-        const content = contentTextarea.value;
+        const content = contentTextarea.value || '';
         const roleId = roleSelect.value;
 
-        // If embed is enabled, render embed preview
-        if (useEmbed && useEmbed.checked) {
-            const title = embedTitleInput.value.trim();
-            const color = (embedColorInput && embedColorInput.value) ? embedColorInput.value : '#2f3136';
-            let html = `<div class="embed-preview p-3 rounded" style="border-left:6px solid ${color}; background:#f8f9fa;">`;
-            if (title) html += `<div class="fw-bold mb-2">${escapeHtml(title)}</div>`;
-            try {
-                html += marked.parse(content || '*Embed пуст...*');
-            } catch {
-                html += escapeHtml(content || '');
-            }
-            html += `</div>`;
-            // role mention above embed if selected
-            if (roleId) {
-                const roleName = roleSelect.options[roleSelect.selectedIndex].text;
-                html = `<p><span class="role-mention">@${roleName}</span></p>` + html;
-            }
-            previewContent.innerHTML = html;
-            return;
-        }
-
-        // default (non-embed) preview
         let previewHtml = '';
+
+        // role preview (human readable)
         if (roleId) {
-            const roleName = roleSelect.options[roleSelect.selectedIndex].text;
-            previewHtml += `<p><span class="role-mention">@${roleName}</span> `;
-        }
-        try {
-            previewHtml += marked.parse(content || '*Текст появится здесь...*');
-        } catch {
-            previewHtml += escapeHtml(content || '');
+            const roleName = roleId === 'everyone'
+                ? '@everyone'
+                : roleSelect.options[roleSelect.selectedIndex].text;
+            previewHtml += `<p class="role-mention">${roleName}</p>`;
         }
 
+        // if embed -> show embed block only (no duplicate plain text)
+        if (useEmbed.checked) {
+            const color = (embedColorHex.value || '#2f3136').trim();
+            const title = (embedTitle.value || '').trim();
+            previewHtml += `
+                <div class="embed-preview" style="border-left-color:${sanitize(color)}">
+                    ${title ? `<div class="embed-title">${escapeHtml(title)}</div>` : ''}
+                    <div class="embed-desc">${safeMarkdown(content) || '<span class="text-muted">Описание пустое</span>'}</div>
+                </div>
+            `;
+        } else {
+            // plain markdown
+            previewHtml += safeMarkdown(content) || '<p class="text-muted">Текст появится здесь...</p>';
+        }
+
+        // files
         if (currentFiles.length > 0) {
             previewHtml += '<div class="mt-3"><strong>Вложения:</strong><div class="d-flex flex-wrap mt-2">';
             currentFiles.forEach(file => {
                 if (file.type.startsWith('image/')) {
-                    previewHtml += `<img src="${URL.createObjectURL(file)}" class="upload-preview" alt="${file.name}">`;
+                    previewHtml += `<img src="${URL.createObjectURL(file)}" class="upload-preview" alt="${escapeHtml(file.name)}">`;
                 } else {
-                    previewHtml += `<div class="file-preview-item"><i class="bi bi-file-earmark"></i><span>${file.name}</span></div>`;
+                    previewHtml += `
+                        <div class="file-preview-item">
+                            <i class="bi bi-file-earmark"></i>
+                            <span>${escapeHtml(file.name)}</span>
+                        </div>
+                    `;
                 }
             });
             previewHtml += '</div></div>';
         }
 
+        // buttons
         const buttons = getButtonsData();
         if (buttons.length > 0) {
             previewHtml += '<div class="mt-3"><strong>Кнопки:</strong><div class="mt-2">';
             buttons.forEach(btn => {
                 if (btn.label && btn.url) {
-                    previewHtml += `<a href="${btn.url}" class="button" target="_blank">${btn.label}</a>`;
+                    previewHtml += `<a href="${sanitize(btn.url)}" class="button" target="_blank">${escapeHtml(btn.label)}</a>`;
                 }
             });
             previewHtml += '</div></div>';
         }
 
-        previewContent.innerHTML = previewHtml || '<p class="text-muted">Здесь будет предпросмотр...</p>';
+        previewContent.innerHTML = previewHtml || '<p class="text-muted">Здесь будет отображаться предпросмотр...</p>';
     }
 
     function handleFileSelect(event) {
@@ -179,14 +201,23 @@ document.addEventListener('DOMContentLoaded', function() {
         currentFiles = files;
 
         filePreview.innerHTML = '';
+
         files.forEach(file => {
             const fileItem = document.createElement('div');
             fileItem.className = 'file-preview-item';
+
             if (file.type.startsWith('image/')) {
-                fileItem.innerHTML = `<img src="${URL.createObjectURL(file)}" class="upload-preview" alt="${file.name}"><span>${file.name} (${formatFileSize(file.size)})</span>`;
+                fileItem.innerHTML = `
+                    <img src="${URL.createObjectURL(file)}" class="upload-preview" alt="${escapeHtml(file.name)}">
+                    <span>${escapeHtml(file.name)} (${formatFileSize(file.size)})</span>
+                `;
             } else {
-                fileItem.innerHTML = `<i class="bi bi-file-earmark me-2"></i><span>${file.name} (${formatFileSize(file.size)})</span>`;
+                fileItem.innerHTML = `
+                    <i class="bi bi-file-earmark me-2"></i>
+                    <span>${escapeHtml(file.name)} (${formatFileSize(file.size)})</span>
+                `;
             }
+
             filePreview.appendChild(fileItem);
         });
 
@@ -217,8 +248,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="input-group">
                 <input type="text" class="form-control" placeholder="Текст кнопки" maxlength="80">
                 <input type="url" class="form-control" placeholder="https://example.com">
-                <button type="button" class="btn btn-danger remove-btn"><i class="bi bi-trash"></i></button>
-            </div>`;
+                <button type="button" class="btn btn-danger remove-btn">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+
         buttonsContainer.appendChild(buttonItem);
 
         buttonItem.querySelector('.remove-btn').addEventListener('click', function() {
@@ -236,16 +271,24 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.button-item').forEach(item => {
             const labelInput = item.querySelector('input[type="text"]');
             const urlInput = item.querySelector('input[type="url"]');
+
             if (labelInput.value && urlInput.value) {
-                buttons.push({ label: labelInput.value, url: urlInput.value });
+                buttons.push({
+                    label: labelInput.value,
+                    url: urlInput.value
+                });
             }
         });
-        return buttons;
+        return buttons.slice(0, 5);
     }
 
     function showModal(title, message) {
         const modalBody = document.getElementById('modalBody');
-        modalBody.innerHTML = `<h5>${title}</h5><p>${message}</p>`;
+        modalBody.innerHTML = `
+            <h5>${title}</h5>
+            <p>${message}</p>
+        `;
+
         const modal = new bootstrap.Modal(document.getElementById('resultModal'));
         modal.show();
     }
@@ -256,23 +299,22 @@ document.addEventListener('DOMContentLoaded', function() {
         attachmentsInput.value = '';
         currentFiles = [];
         filePreview.innerHTML = '';
+        useEmbed.checked = false;
+        embedFields.style.display = 'none';
+        embedTitle.value = '';
+        embedColor.value = '#5865f2';
+        embedColorHex.value = '#5865f2';
         buttonsContainer.innerHTML = `
             <div class="button-item mb-2">
                 <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Текст кнопки">
+                    <input type="text" class="form-control" placeholder="Текст кнопки" maxlength="80">
                     <input type="url" class="form-control" placeholder="https://example.com">
                     <button type="button" class="btn btn-danger remove-btn"><i class="bi bi-trash"></i></button>
                 </div>
-            </div>`;
+            </div>
+        `;
         scheduleCheckbox.checked = false;
         scheduleDate.style.display = 'none';
-        if (useEmbed) {
-            useEmbed.checked = false;
-            embedFields.style.display = 'none';
-            if (embedTitleInput) embedTitleInput.value = '';
-            if (embedColorInput) embedColorInput.value = '#2f3136';
-            if (embedColorHex) embedColorHex.value = '#2f3136';
-        }
 
         document.querySelectorAll('.remove-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -280,6 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 updatePreview();
             });
         });
+
         document.querySelectorAll('.button-item input').forEach(input => {
             input.addEventListener('input', updatePreview);
         });
@@ -287,27 +330,31 @@ document.addEventListener('DOMContentLoaded', function() {
         updatePreview();
     }
 
-    document.querySelectorAll('.remove-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            this.closest('.button-item').remove();
-            updatePreview();
-        });
-    });
-
-    // escape basic html to avoid injection in preview
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>"']/g, function(m) {
-            return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]);
-        });
+    function safeMarkdown(text) {
+        try {
+            return marked.parse(text || '');
+        } catch {
+            return `<pre class="mb-0">${escapeHtml(text || '')}</pre>`;
+        }
     }
 
+    function sanitize(s) {
+        // для атрибутов (href, style)
+        try { return String(s).replace(/["'><]/g, ''); } catch { return s; }
+    }
+
+    function escapeHtml(s) {
+        return String(s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    // spinner style
     const style = document.createElement('style');
     style.textContent = `
         .spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .embed-preview { overflow-wrap: anywhere; }
-        .upload-preview { max-height: 80px; margin-right: 8px; border-radius: 6px; }
     `;
     document.head.appendChild(style);
 });
