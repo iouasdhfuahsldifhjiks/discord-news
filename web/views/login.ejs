@@ -35,11 +35,29 @@
 
         .login-body {
             padding: 2rem;
+            text-align: center;
         }
 
         .login-icon {
             font-size: 3rem;
             margin-bottom: 1rem;
+        }
+
+        .btn-discord {
+            background: #5865f2;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s;
+            width: 100%;
+            text-align: center;
+            font-weight: 600;
+        }
+        .btn-discord:hover {
+            background: #4752c4;
+            color: white;
         }
     </style>
 </head>
@@ -59,21 +77,9 @@
                 </div>
             <% } %>
 
-            <form method="POST">
-                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-
-                <div class="mb-3">
-                    <label for="password" class="form-label">
-                        <i class="bi bi-key"></i> Пароль
-                    </label>
-                    <input type="password" class="form-control" id="password" name="password"
-                           required autocomplete="current-password" autofocus>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100 py-2">
-                    <i class="bi bi-box-arrow-in-right"></i> Войти
-                </button>
-            </form>
+            <a href="/auth/discord" class="btn btn-discord mb-3">
+                <i class="bi bi-discord"></i> Войти через Discord
+            </a>
 
             <div class="text-center mt-4">
                 <p class="text-muted">© 2025 Discord News Bot</p>

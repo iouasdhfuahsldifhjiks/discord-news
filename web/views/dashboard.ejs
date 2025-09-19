@@ -13,13 +13,18 @@
 <body>
 <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
     <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">
-                <i class="bi bi-megaphone"></i> Discord News Bot
-            </span>
+        <span class="navbar-brand mb-0 h1">
+            <i class="bi bi-megaphone"></i> Discord News Bot
+        </span>
         <div class="navbar-nav ms-auto">
-                <span class="navbar-text me-3">
-                    <i class="bi bi-discord"></i> Сервер: <strong><%= guildName %></strong>
-                </span>
+            <span class="navbar-text me-3">
+                <img src="<%= user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` : '/img/default-avatar.png' %>"
+                     width="30" height="30" class="rounded-circle me-2">
+                <%= user.username %>
+            </span>
+            <span class="navbar-text me-3">
+                <i class="bi bi-discord"></i> Сервер: <strong><%= guildName %></strong>
+            </span>
             <a href="/logout" class="btn btn-outline-light btn-sm">
                 <i class="bi bi-box-arrow-right"></i> Выйти
             </a>
@@ -105,6 +110,26 @@
                             </div>
                         </div>
 
+                        <!-- Блок выбора позиции вложений -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-arrow-up-down"></i> Позиция вложений
+                            </label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="attachmentPosition" id="positionStart" value="start" checked>
+                                <label class="form-check-label" for="positionStart">
+                                    <i class="bi bi-arrow-up"></i> В начале сообщения
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="attachmentPosition" id="positionEnd" value="end">
+                                <label class="form-check-label" for="positionEnd">
+                                    <i class="bi bi-arrow-down"></i> В конце сообщения
+                                </label>
+                            </div>
+                            <div class="form-text">Выберите, где должны отображаться прикрепленные файлы</div>
+                        </div>
+
                         <div class="mb-4">
                             <label for="attachments" class="form-label">
                                 <i class="bi bi-paperclip"></i> Вложения
@@ -133,6 +158,19 @@
                             <div class="form-text">Максимум 5 кнопок</div>
                         </div>
 
+                        <!-- Выбор часового пояса -->
+                        <div class="mb-4">
+                            <label for="timezone" class="form-label">
+                                <i class="bi bi-globe"></i> Часовой пояс
+                            </label>
+                            <select class="form-select" id="timezone" name="timezone" required>
+                                <% timezones.forEach(tz => { %>
+                                    <option value="<%= tz.value %>" <%= (user.timezone === tz.value) ? 'selected' : '' %>><%= tz.name %></option>
+                                <% }); %>
+                            </select>
+                            <div class="form-text">Выберите ваш часовой пояс для корректного отображения времени</div>
+                        </div>
+
                         <div class="mb-4">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="schedule" name="schedule">
@@ -145,6 +183,7 @@
                                     <i class="bi bi-calendar-event"></i> Дата и время отправки
                                 </label>
                                 <input type="datetime-local" class="form-control" id="scheduledTime" name="scheduledTime">
+                                <div class="form-text">Время будет показано в выбранном часовом поясе</div>
                             </div>
                         </div>
 
@@ -186,8 +225,8 @@
                         <% } else { %>
                             <% history.forEach(item => { %>
                                 <div class="history-item">
-                                    <div class="d-flex w-100 justify-content-between align-items-start">
-                                        <h6 class="mb-1">
+                                    <div class="history-meta">
+                                        <div class="history-status">
                                             <% if (item.sent) { %>
                                                 <span class="badge bg-success">Отправлено</span>
                                             <% } else if (item.canceled) { %>
@@ -195,16 +234,49 @@
                                             <% } else { %>
                                                 <span class="badge bg-warning">Запланировано</span>
                                             <% } %>
-                                            <%= (item.content || '').substring(0, 50) + ((item.content || '').length > 50 ? '...' : '') %>
-                                        </h6>
-                                        <small class="text-muted"><%= new Date(item.createdAt).toLocaleDateString() %></small>
+                                            <h6 class="mb-0 ms-2">
+                                                <%= (item.content || '').substring(0, 50) + ((item.content || '').length > 50 ? '...' : '') %>
+                                            </h6>
+                                        </div>
+                                        <small class="history-date" data-utc="<%= item.createdAt %>">
+                                            <%= item.createdAtLocal %> (<%= item.userTimezone %>)
+                                        </small>
                                     </div>
-                                    <p class="mb-1 text-muted">
-                                        Канал: <%= item.channelId %><br>
-                                        <% if (item.scheduledTime && !item.sent && !item.canceled) { %>
-                                            Запланировано на: <%= new Date(item.scheduledTime).toLocaleString() %>
-                                        <% } %>
-                                    </p>
+
+                                    <div class="history-content">
+                                        <p class="mb-1 text-muted">
+                                            Канал: <%= item.channelId %><br>
+                                            <% if (item.scheduledTimeLocal && !item.sent && !item.canceled) { %>
+                                                Запланировано на: <span data-utc="<%= item.scheduledTime %>"><%= item.scheduledTimeLocal %> (<%= item.userTimezone %>)</span>
+                                            <% } %>
+                                        </p>
+                                    </div>
+
+                                    <!-- Блок с информацией об авторе -->
+                                    <% if (item.author) { %>
+                                        <div class="author-info">
+                                            <div class="d-flex align-items-center">
+                                                <% if (item.author.avatar) { %>
+                                                    <img src="https://cdn.discordapp.com/avatars/<%= item.author.id %>/<%= item.author.avatar %>.png"
+                                                         class="author-avatar" alt="Аватар <%= item.author.username %>">
+                                                <% } else { %>
+                                                    <div class="avatar-placeholder">
+                                                        <i class="bi bi-person"></i>
+                                                    </div>
+                                                <% } %>
+                                                <span class="author-name"><%= item.author.username %></span>
+                                                <% if (item.author.timezone && item.author.timezone !== item.userTimezone) { %>
+                                                    <span class="author-timezone ms-2">(Часовой пояс: <%= item.author.timezone %>)</span>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    <% } %>
+
+                                    <% if (item.scheduledTime && !item.sent && !item.canceled) { %>
+                                        <button class="btn btn-sm btn-danger cancel-btn" data-id="<%= item.id %>">
+                                            <i class="bi bi-x-circle"></i> Отменить
+                                        </button>
+                                    <% } %>
                                 </div>
                             <% }); %>
                         <% } %>
@@ -234,5 +306,58 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="/js/script.js"></script>
+<script>
+    // Добавляем обработчик для кнопок отмены запланированных сообщений
+    document.addEventListener('DOMContentLoaded', function() {
+        const historyList = document.getElementById('historyList');
+
+        historyList.addEventListener('click', function(e) {
+            if (e.target.closest('.cancel-btn')) {
+                const button = e.target.closest('.cancel-btn');
+                const messageId = button.dataset.id;
+
+                if (confirm('Вы уверены, что хотите отменить запланированное сообщение?')) {
+                    cancelScheduledMessage(messageId);
+                }
+            }
+        });
+
+        // Добавляем подсказки с временем для всех часовых поясов
+        const timeElements = document.querySelectorAll('[data-utc]');
+        timeElements.forEach(el => {
+            const utcTime = el.getAttribute('data-utc');
+            if (utcTime) {
+                const date = new Date(utcTime);
+                const utcString = date.toUTCString();
+                const localString = date.toLocaleString();
+                el.setAttribute('title', `UTC: ${utcString}\nЛокальное время: ${localString}`);
+            }
+        });
+
+        async function cancelScheduledMessage(messageId) {
+            try {
+                const response = await fetch(`/api/cancel-scheduled/${messageId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': document.querySelector('input[name="_csrf"]').value
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert('Ошибка: ' + (result.error || result.message));
+                }
+            } catch (error) {
+                console.error('Ошибка отмены сообщения:', error);
+                alert('Произошла ошибка при отмене сообщения');
+            }
+        }
+    });
+</script>
 </body>
 </html>

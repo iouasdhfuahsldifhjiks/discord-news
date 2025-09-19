@@ -50,6 +50,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Обработчики для переключателей позиции вложений
+    document.querySelectorAll('input[name="attachmentPosition"]').forEach(radio => {
+        radio.addEventListener('change', updatePreview);
+    });
+
     function getCSRFToken() {
         const el = document.querySelector('input[name="_csrf"]');
         return el ? el.value : '';
@@ -69,21 +74,12 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Отправка...';
             progress.style.display = 'block';
 
-            // Анимация прогресса
-            let width = 0;
-            const progressInterval = setInterval(() => {
-                if (width >= 90) {
-                    clearInterval(progressInterval);
-                } else {
-                    width += 5;
-                    progressBar.style.width = width + '%';
-                }
-            }, 100);
-
             const formData = new FormData(newsForm);
+            const attachmentPosition = document.querySelector('input[name="attachmentPosition"]:checked').value;
 
             // buttons -> JSON
             formData.set('buttons', JSON.stringify(getButtonsData()));
+            formData.set('attachmentPosition', attachmentPosition);
 
             // embed -> JSON (если включён)
             if (useEmbed.checked) {
@@ -107,7 +103,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: formData
             });
 
-            const result = await response.json();
+
+            let result;
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                result = await response.json();
+            } else {
+                const text = await response.text();
+                showModal('❌ Ошибка', `Сервер вернул ошибку: ${escapeHtml(text)}`);
+                progress.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                return;
+            }
+
 
             // Завершаем прогресс-бар
             progressBar.style.width = '100%';
@@ -137,6 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updatePreview() {
         const content = contentTextarea.value || '';
         const roleId = roleSelect.value;
+        const attachmentPosition = document.querySelector('input[name="attachmentPosition"]:checked').value;
 
         let previewHtml = '';
 
@@ -145,7 +155,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const roleName = roleId === 'everyone'
                 ? '@everyone'
                 : roleSelect.options[roleSelect.selectedIndex].text;
-            previewHtml += `<p class="role-mention">${roleName}</p>`;
+            previewHtml += `<p class="mb-1"><span class="role-mention">${roleName}</span></p>`;
+        }
+
+        // Если вложения должны быть в начале и есть файлы
+        if (attachmentPosition === 'start' && currentFiles.length > 0) {
+            previewHtml += renderFilesPreview();
         }
 
         // if embed -> show embed block only (no duplicate plain text)
@@ -163,22 +178,9 @@ document.addEventListener('DOMContentLoaded', function() {
             previewHtml += safeMarkdown(content) || '<p class="text-muted">Текст появится здесь...</p>';
         }
 
-        // files
-        if (currentFiles.length > 0) {
-            previewHtml += '<div class="mt-3"><strong>Вложения:</strong><div class="d-flex flex-wrap mt-2">';
-            currentFiles.forEach(file => {
-                if (file.type.startsWith('image/')) {
-                    previewHtml += `<img src="${URL.createObjectURL(file)}" class="upload-preview" alt="${escapeHtml(file.name)}">`;
-                } else {
-                    previewHtml += `
-                        <div class="file-preview-item">
-                            <i class="bi bi-file-earmark"></i>
-                            <span>${escapeHtml(file.name)}</span>
-                        </div>
-                    `;
-                }
-            });
-            previewHtml += '</div></div>';
+        // Если вложения должны быть в конце и есть файлы
+        if (attachmentPosition === 'end' && currentFiles.length > 0) {
+            previewHtml += renderFilesPreview();
         }
 
         // buttons
@@ -194,6 +196,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         previewContent.innerHTML = previewHtml || '<p class="text-muted">Здесь будет отображаться предпросмотр...</p>';
+    }
+
+    // Новая функция для рендеринга превью файлов
+    function renderFilesPreview() {
+        let filesHtml = '<div class="mt-3"><strong>Вложения:</strong><div class="d-flex flex-wrap mt-2">';
+        currentFiles.forEach(file => {
+            if (file.type.startsWith('image/')) {
+                filesHtml += `<img src="${URL.createObjectURL(file)}" class="upload-preview" alt="${escapeHtml(file.name)}">`;
+            } else {
+                filesHtml += `
+                    <div class="file-preview-item">
+                        <i class="bi bi-file-earmark"></i>
+                        <span>${escapeHtml(file.name)}</span>
+                    </div>
+                `;
+            }
+        });
+        filesHtml += '</div></div>';
+        return filesHtml;
     }
 
     function handleFileSelect(event) {
@@ -304,6 +325,7 @@ document.addEventListener('DOMContentLoaded', function() {
         embedTitle.value = '';
         embedColor.value = '#5865f2';
         embedColorHex.value = '#5865f2';
+        document.querySelector('input[name="attachmentPosition"][value="start"]').checked = true;
         buttonsContainer.innerHTML = `
             <div class="button-item mb-2">
                 <div class="input-group">
