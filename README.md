@@ -1,5 +1,8 @@
 ## Discord News Bot
 
+<img width="1919" height="948" alt="image" src="https://github.com/user-attachments/assets/26ac1848-ea55-48a9-b8b2-1953b9e8c166" />
+
+
 Веб-панель и Discord-бот для публикации новостей: поддержка вложений, кнопок, планирования и Embed (встроенных сообщений).  
 Документ описывает установку, создание `.env` и типичные операции.
 
@@ -170,3 +173,5 @@ npm run start
     Сгенерировать bcrypt-хэш:
 
 node -e "console.log(require('bcryptjs').hashSync('ваш_пароль', 10))"
+
+
